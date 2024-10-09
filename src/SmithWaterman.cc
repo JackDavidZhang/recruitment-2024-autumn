@@ -1,5 +1,6 @@
 #include "SmithWaterman.hpp"
 
+#include <Timer.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <fstream>
@@ -8,6 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 SmithWaterman::SmithWaterman(const std::string& query_seq_path,
                              const std::string& target_seq_path) {
@@ -22,15 +24,35 @@ SmithWaterman::SmithWaterman(const std::string& query_seq_path,
 
 std::vector<size_t> SmithWaterman::solve() {
   // Iterate through the query sequences
-  for (auto& query_seq : query_seqs) {
-    size_t query_seq_length = query_seq.sequence.size();
+  for (size_t i = 0;i < query_seqs.size();i ++) {
 
     // Iterate throuth the target sequences
-    for (auto& target_seq : target_seqs) {
-      size_t target_seq_length = target_seq.sequence.size();
-      // Pairwise-Alignment
-      pair_align(query_seq, target_seq, query_seq_length, target_seq_length);
+    for (size_t j = 0;j < target_seqs.size();j ++) {
+      std::pair<size_t,size_t> problem = {i,j};
+      problems.push(problem);
     }
+  }
+
+  max_scores.resize(query_seqs.size()*target_seqs.size());
+  size_t k = 0;
+
+  size_t max_thread = std::thread::hardware_concurrency();
+  std::cout << "Running on " << max_thread << " threads." << std::endl;
+  while(!problems.empty()) {
+    //pair_align(query_seqs[problems.front().first],target_seqs[problems.front().second]);//TODO ?
+    if(threads.size()>=max_thread) {
+      threads.front()->join();
+      delete threads.front();
+      threads.pop();
+    }
+    auto* thread_align = new std::thread(pair_align,&query_seqs[problems.front().first],&target_seqs[problems.front().second],max_scores.begin().base()+(k++));
+    threads.push(thread_align);
+    problems.pop();
+  }
+  while(!threads.empty()) {
+    threads.front()->join();
+    delete threads.front();
+    threads.pop();
   }
 
   return max_scores;
@@ -52,14 +74,15 @@ void SmithWaterman::report() const {
   }
 }
 
-void SmithWaterman::pair_align(FastaSequence& query_seq,
-                               FastaSequence& target_seq,
-                               size_t query_seq_length,
-                               size_t target_seq_length) {
-  size_t pad = target_seq_length + 1;
+void pair_align(FastaSequence* query_seq,
+                               FastaSequence* target_seq,size_t* score) {
+  ScopeTimer st("Thread Timer");
+  size_t target_seq_length = target_seq->sequence.size();
+  size_t query_seq_length = query_seq->sequence.size();
+  // similarity matrix(scoring matrix)
+  std::vector<size_t> H;
   // Resize the similarity_matrix
   H.resize(2 * (target_seq_length + 1), 0);
-  for(int i = 0;i < H.size();i ++) H[i]=0;
   // Store the highest score in each pairwise-alignment process.
   // Default to 0.
   size_t max_score = 0;
@@ -67,20 +90,20 @@ void SmithWaterman::pair_align(FastaSequence& query_seq,
   // Pairwise-Alignment between the two sequences
   for (int64_t i = 1; i <= query_seq_length; i++) {
     for (int64_t j = 1; j <= target_seq_length; j++) {
-      int64_t index = pad + j;
+      int64_t index = target_seq_length + 1 + j;
 
       // From the upper element
-      int64_t up = H[j] + gap_score;
+      int64_t up = H[j] + SmithWaterman::gap_score;
 
       // From the left element
-      int64_t left = H[index - 1] + gap_score;
+      int64_t left = H[index - 1] + SmithWaterman::gap_score;
 
       // From the upper-left element
       int64_t upleft =
           H[j - 1] +
-          (query_seq.sequence.at(i - 1) == target_seq.sequence.at(j - 1)
-               ? match_score
-               : mismatch_score);
+          (query_seq->sequence.at(i - 1) == target_seq->sequence.at(j - 1)
+               ? SmithWaterman::match_score
+               : SmithWaterman::mismatch_score);
       int64_t max = std::max({up, left, upleft, 0l});
 
       H[index] = max;
@@ -89,10 +112,9 @@ void SmithWaterman::pair_align(FastaSequence& query_seq,
         max_score = max;
       }
     }
-    for(int j = 1;j <= target_seq_length;j ++) H[j] = H[pad+j];
+    for(int j = 1;j <= target_seq_length;j ++) H[j] = H[target_seq_length + 1+j];
   }
-  max_scores.push_back(max_score);
-
+  *score = max_score;
 }
 
 int SmithWaterman::validate(const std::string& ref_path) {
