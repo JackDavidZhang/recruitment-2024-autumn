@@ -56,6 +56,7 @@ void SmithWaterman::pair_align(FastaSequence& query_seq,
                                FastaSequence& target_seq,
                                size_t query_seq_length,
                                size_t target_seq_length) {
+  std::cout << query_seq.description << ' ' << query_seq_length << ' ' << target_seq.description << ' ' << target_seq_length << std::endl;
   size_t pad = target_seq_length + 1;
   // Resize the similarity_matrix
   H.resize((query_seq_length + 1) * (target_seq_length + 1), 0);
@@ -92,13 +93,7 @@ void SmithWaterman::pair_align(FastaSequence& query_seq,
     }
   }
   max_scores.push_back(H[max_positions.back()]);
-  for (int64_t i = 1; i <= query_seq_length; i++) {
-    for (int64_t j = 1; j <= target_seq_length; j++) {
-      std::cout << H[pad*i+j] << ' ';
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
+
 }
 
 int SmithWaterman::validate(const std::string& ref_path) {
