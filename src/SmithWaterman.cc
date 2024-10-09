@@ -56,43 +56,42 @@ void SmithWaterman::pair_align(FastaSequence& query_seq,
                                FastaSequence& target_seq,
                                size_t query_seq_length,
                                size_t target_seq_length) {
-  std::cout << query_seq.description << ' ' << query_seq_length << ' ' << target_seq.description << ' ' << target_seq_length << std::endl;
   size_t pad = target_seq_length + 1;
   // Resize the similarity_matrix
-  H.resize((query_seq_length + 1) * (target_seq_length + 1), 0);
-
+  H.resize(2 * (target_seq_length + 1), 0);
+  for(int i = 0;i < H.size();i ++) H[i]=0;
   // Store the highest score in each pairwise-alignment process.
   // Default to 0.
-  max_positions.push_back(0);
-
+  size_t max_score = 0;
+  //max_positions.push_back(0);
   // Pairwise-Alignment between the two sequences
   for (int64_t i = 1; i <= query_seq_length; i++) {
     for (int64_t j = 1; j <= target_seq_length; j++) {
-      int64_t index = pad * i + j;
+      int64_t index = pad + j;
 
       // From the upper element
-      int64_t up = H[index - pad] + gap_score;
+      int64_t up = H[j] + gap_score;
 
       // From the left element
       int64_t left = H[index - 1] + gap_score;
 
       // From the upper-left element
       int64_t upleft =
-          H[index - pad - 1] +
+          H[j - 1] +
           (query_seq.sequence.at(i - 1) == target_seq.sequence.at(j - 1)
                ? match_score
                : mismatch_score);
-
       int64_t max = std::max({up, left, upleft, 0l});
 
       H[index] = max;
 
-      if (max > H[max_positions.back()]) {
-        max_positions.back() = index;
+      if (max > max_score) {
+        max_score = max;
       }
     }
+    for(int j = 1;j <= target_seq_length;j ++) H[j] = H[pad+j];
   }
-  max_scores.push_back(H[max_positions.back()]);
+  max_scores.push_back(max_score);
 
 }
 
