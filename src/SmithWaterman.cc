@@ -92,6 +92,13 @@ void SmithWaterman::pair_align(FastaSequence& query_seq,
     }
   }
   max_scores.push_back(H[max_positions.back()]);
+  for (int64_t i = 1; i <= query_seq_length; i++) {
+    for (int64_t j = 1; j <= target_seq_length; j++) {
+      std::cout << H[pad*i+j] << ' ';
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
 }
 
 int SmithWaterman::validate(const std::string& ref_path) {

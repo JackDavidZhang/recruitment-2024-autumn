@@ -1,4 +1,6 @@
 build/
-data/
+#data/
 .cache/
 output/
+cmake-build-*/
+data.tar.gz
