@@ -65,7 +65,7 @@ void SmithWaterman::report() const {
 
 void pair_align(FastaSequence* query_seq,
                                FastaSequence* target_seq,size_t* score) {
-  ScopeTimer st("Thread Timer");
+  //ScopeTimer st("Thread Timer");
   size_t target_seq_length = target_seq->sequence.size();
   size_t query_seq_length = query_seq->sequence.size();
   // similarity matrix(scoring matrix)
