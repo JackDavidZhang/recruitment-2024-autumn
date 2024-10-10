@@ -32,7 +32,7 @@
 - Small 5.079680 s
 - Medium 633.32 s
 
-### Multithread
+### Multithread(std::thread)
 
 #### Local WSL
 
@@ -58,3 +58,31 @@
 - 288.292549 s
 - 112.112895 s
 - 147.349991 s
+
+### Multithread(OpenMP)
+
+#### Local WSL
+
+- Tiny 48.554000 ms
+- Small 164.031000 ms
+- Medium 16.965020 s
+
+#### Remote RaspberryPi4B
+
+- Tiny 357.441000 ms
+- Small 1.486954 s
+- Medium 779.295774 s
+
+### Multithread(OpenMP,SIMD)
+
+#### Local WSL
+
+- Tiny 50.437000 ms
+- Small 143.368000 ms
+- Medium 12.877843 s
+
+#### Remote RaspberryPi4B
+
+- Tiny 387.141000 ms
+- Small 1.603563 s
+- Medium 752.945457 s

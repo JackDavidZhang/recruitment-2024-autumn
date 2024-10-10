@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include<omp.h>
 
 SmithWaterman::SmithWaterman(const std::string& query_seq_path,
                              const std::string& target_seq_path) {
@@ -23,36 +24,24 @@ SmithWaterman::SmithWaterman(const std::string& query_seq_path,
 }
 
 std::vector<size_t> SmithWaterman::solve() {
+  while(!problems.empty()) {
+    problems.pop_back();
+  }
   // Iterate through the query sequences
   for (size_t i = 0;i < query_seqs.size();i ++) {
 
     // Iterate throuth the target sequences
     for (size_t j = 0;j < target_seqs.size();j ++) {
       std::pair<size_t,size_t> problem = {i,j};
-      problems.push(problem);
+      problems.push_back(problem);
     }
   }
 
   max_scores.resize(query_seqs.size()*target_seqs.size());
-  size_t k = 0;
 
-  size_t max_thread = std::thread::hardware_concurrency();
-  std::cout << "Running on " << max_thread << " threads." << std::endl;
-  while(!problems.empty()) {
-    //pair_align(query_seqs[problems.front().first],target_seqs[problems.front().second]);//TODO ?
-    if(threads.size()>=max_thread) {
-      threads.front()->join();
-      delete threads.front();
-      threads.pop();
-    }
-    auto* thread_align = new std::thread(pair_align,&query_seqs[problems.front().first],&target_seqs[problems.front().second],max_scores.begin().base()+(k++));
-    threads.push(thread_align);
-    problems.pop();
-  }
-  while(!threads.empty()) {
-    threads.front()->join();
-    delete threads.front();
-    threads.pop();
+#pragma omp parallel for
+  for(size_t i = 0;i < problems.size();i ++) {
+    pair_align(&query_seqs[problems[i].first],&target_seqs[problems[i].second],max_scores.begin().base()+i);
   }
 
   return max_scores;
@@ -88,6 +77,7 @@ void pair_align(FastaSequence* query_seq,
   size_t max_score = 0;
   //max_positions.push_back(0);
   // Pairwise-Alignment between the two sequences
+#pragma omp simd
   for (int64_t i = 1; i <= query_seq_length; i++) {
     for (int64_t j = 1; j <= target_seq_length; j++) {
       int64_t index = target_seq_length + 1 + j;

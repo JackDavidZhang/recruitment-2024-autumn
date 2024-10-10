@@ -41,8 +41,7 @@ class SmithWaterman {
   // The reference scores.
   std::vector<size_t> refs;
 
-  std::queue<std::pair<size_t,size_t> > problems;
-  std::queue<std::thread*> threads;
+  std::vector<std::pair<size_t,size_t> > problems;
 
   // Number of query/target sequences
   size_t query_seqs_size;
