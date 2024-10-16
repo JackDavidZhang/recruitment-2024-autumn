@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25.1)
+cmake_minimum_required(VERSION 3.22.1)
 project(heptagon_24autumn_recruitment CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp")
+set(CMAKE_CXX_FLAGS "-O3 -fopenmp -mavx2")
 
 include_directories(include)
 
@@ -22,4 +22,4 @@ add_test(NAME "test case" COMMAND ${CMAKE_BINARY_DIR}/SmithWaterman ${dataset}/t
 
 add_test(NAME "tiny case" COMMAND ${CMAKE_BINARY_DIR}/SmithWaterman ${dataset}/tiny_q.fna ${dataset}/tiny_t.fna ${dataset}/tiny_ref.txt)
 add_test(NAME "small case" COMMAND ${CMAKE_BINARY_DIR}/SmithWaterman ${dataset}/small_q.fna ${dataset}/small_t.fna ${dataset}/small_ref.txt)
-#add_test(NAME "medium case" COMMAND ${CMAKE_BINARY_DIR}/SmithWaterman ${dataset}/medium_q.fna ${dataset}/medium_t.fna ${dataset}/medium_ref.txt)
+add_test(NAME "medium case" COMMAND ${CMAKE_BINARY_DIR}/SmithWaterman ${dataset}/medium_q.fna ${dataset}/medium_t.fna ${dataset}/medium_ref.txt)

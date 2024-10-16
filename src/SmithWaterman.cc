@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <immintrin.h>
 #include<omp.h>
 
 SmithWaterman::SmithWaterman(const std::string& query_seq_path,
@@ -70,31 +71,41 @@ void pair_align(FastaSequence* query_seq,
   size_t query_seq_length = query_seq->sequence.size();
   // similarity matrix(scoring matrix)
   std::vector<size_t> H;
+  std::vector<int64_t> up;
+  std::vector<int64_t> upleft;
   // Resize the similarity_matrix
   H.resize(2 * (target_seq_length + 1), 0);
+  up.resize(target_seq_length+1,0);
+  upleft.resize(target_seq_length+1,0);
   // Store the highest score in each pairwise-alignment process.
   // Default to 0.
   size_t max_score = 0;
   //max_positions.push_back(0);
   // Pairwise-Alignment between the two sequences
+  __m256i gap_score_256 = _mm256_set1_epi64x(SmithWaterman::gap_score);
 #pragma omp simd
   for (int64_t i = 1; i <= query_seq_length; i++) {
+    for (int64_t j = 1; j+4 <= target_seq_length; j+=4) {
+      up[j] = H[j] +SmithWaterman::gap_score;
+    }
+    for (int64_t j = 1; j <= target_seq_length; j++) upleft[j] = query_seq->sequence.at(i - 1) == target_seq->sequence.at(j - 1);
+    for (int64_t j = 1; j <= target_seq_length; j++) upleft[j]=upleft[j]*(SmithWaterman::match_score-SmithWaterman::mismatch_score)+SmithWaterman::mismatch_score+H[j-1];
     for (int64_t j = 1; j <= target_seq_length; j++) {
       int64_t index = target_seq_length + 1 + j;
 
       // From the upper element
-      int64_t up = H[j] + SmithWaterman::gap_score;
+      // int64_t up = H[j] + SmithWaterman::gap_score;
 
       // From the left element
       int64_t left = H[index - 1] + SmithWaterman::gap_score;
 
       // From the upper-left element
-      int64_t upleft =
-          H[j - 1] +
-          (query_seq->sequence.at(i - 1) == target_seq->sequence.at(j - 1)
-               ? SmithWaterman::match_score
-               : SmithWaterman::mismatch_score);
-      int64_t max = std::max({up, left, upleft, 0l});
+      //int64_t upleft =
+      //    H[j - 1] +
+      //    (query_seq->sequence.at(i - 1) == target_seq->sequence.at(j - 1)
+      //         ? SmithWaterman::match_score
+      //         : SmithWaterman::mismatch_score);
+      int64_t max = std::max({up[j], left, upleft[j], 0l});
 
       H[index] = max;
 
