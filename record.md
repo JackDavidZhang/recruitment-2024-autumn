@@ -87,7 +87,7 @@
 - Small 1.603563 s
 - Medium 752.945457 s
 
-#### Remote Server
+#### Remote Server ?
 
 - Tiny 66.345000 ms
 - Small 241.631000 ms
@@ -95,14 +95,16 @@
 
 ### Decouple computing(OpenMP SIMD)
 
-### Local WSL
+#### Local WSL
 
 - Tiny 59.594000 ms
 - Small 185.129000 ms
 - Medium 17.385655 s
 
-## Decouple computing(OpenMP)
+### Decouple computing(OpenMP)
 
-- Tiny 50.687000 ms
-- Small 148.573000 ms
-- Medium 12.171693 s
+#### Local WSL
+
+- Tiny 43.637000 ms
+- Small 128.511000 ms
+- Medium 12.364470 s
