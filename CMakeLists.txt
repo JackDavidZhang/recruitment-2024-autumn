@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(heptagon_24autumn_recruitment LANGUAGES CUDA CXX)
-
-find_package(CUDA REQUIRED)
+set(CMAKE_CUDA_ARCHITECTURES 75)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
+
 
 set(CMAKE_CXX_FLAGS "-O3 -fopenmp")
 
@@ -14,7 +15,7 @@ include_directories(include)
 
 file(GLOB SOURCE_FILES "src/*.cc" "main.cc")
 
-cuda_add_library(CUDA_lib src/cuda.cu
+add_library(CUDA_lib src/cuda.cu
         include/cuda.h)
 
 add_executable (SmithWaterman ${SOURCE_FILES})
