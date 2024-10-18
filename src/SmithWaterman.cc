@@ -1,4 +1,5 @@
 #include "SmithWaterman.hpp"
+#include <cuda.h>
 
 #include <immintrin.h>
 #include <omp.h>
@@ -88,9 +89,10 @@ void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
 
   // From the upper element
   for (int32_t i = 1; i <= query_seq_length; i++) {
-    for (int32_t j = 1; j <= target_seq_length; j++) {
-      up[j] = H[j] + SmithWaterman::gap_score;
-    }
+    // for (int32_t j = 1; j <= target_seq_length; j++) {
+    //   up[j] = H[j] + SmithWaterman::gap_score;
+    // }
+    cuda_caluc1(up.begin().base()+1,H.begin().base()+1,target_seq_length,SmithWaterman::gap_score);
     for (int32_t j = 1; j <= target_seq_length; j++)
       upleft[j] =
           query_seq->sequence.at(i - 1) == target_seq->sequence.at(j - 1);
