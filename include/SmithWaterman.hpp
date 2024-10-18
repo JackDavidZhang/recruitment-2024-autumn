@@ -33,7 +33,6 @@ class SmithWaterman {
   std::vector<uint32_t> max_scores;
 
  private:
-
   // The query/target sequences
   std::vector<FastaSequence> query_seqs;
   std::vector<FastaSequence> target_seqs;
@@ -41,21 +40,22 @@ class SmithWaterman {
   // The reference scores.
   std::vector<uint32_t> refs;
 
-  std::vector<std::pair<uint32_t,uint32_t> > problems;
+  std::vector<std::pair<uint32_t, uint32_t> > problems;
 
   // Number of query/target sequences
   uint32_t query_seqs_size;
   uint32_t target_seqs_size;
 
   // Length of each sequence
-  //std::vector<std::vector<int32_t>> query_seqs_lens;
-  //std::vector<std::vector<int32_t>> target_seqs_lens;
+  // std::vector<std::vector<int32_t>> query_seqs_lens;
+  // std::vector<std::vector<int32_t>> target_seqs_lens;
 
   // The indices of the highest score for each query-target pair.
-  //std::vector<uint32_t> max_positions;
+  // std::vector<uint32_t> max_positions;
 
   void read_seq(const std::string& seq_path, std::vector<FastaSequence>& seqs);
 
   void read_ref(const std::string& ref_path, std::vector<uint32_t>& refs);
 };
-void pair_align(FastaSequence* query_seq, FastaSequence* target_seq, uint32_t* sw);
+void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
+                uint32_t* sw);

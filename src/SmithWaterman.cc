@@ -1,12 +1,10 @@
 #include "SmithWaterman.hpp"
-#include <cuda.h>
 
-#include <immintrin.h>
+#include <cuda.h>
 #include <omp.h>
 
-#include <Timer.hpp>
 #include <algorithm>
-#include <cstddef>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -89,17 +87,14 @@ void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
 
   // From the upper element
   for (int32_t i = 1; i <= query_seq_length; i++) {
-    // for (int32_t j = 1; j <= target_seq_length; j++) {
-    //   up[j] = H[j] + SmithWaterman::gap_score;
-    // }
-    cuda_caluc1(up.begin().base()+1,H.begin().base()+1,target_seq_length,SmithWaterman::gap_score);
+    cuda_caluc1(up.begin().base() + 1, H.begin().base() + 1, target_seq_length,
+                SmithWaterman::gap_score);
     for (int32_t j = 1; j <= target_seq_length; j++)
       upleft[j] =
           query_seq->sequence.at(i - 1) == target_seq->sequence.at(j - 1);
-    for (int32_t j = 1; j <= target_seq_length; j++)
-      upleft[j] = upleft[j] * (SmithWaterman::match_score -
-                               SmithWaterman::mismatch_score) +
-                  SmithWaterman::mismatch_score + H[j - 1];
+    cuda_caluc2(upleft.begin().base() + 1, H.begin().base(), target_seq_length,
+                SmithWaterman::match_score - SmithWaterman::mismatch_score,
+                SmithWaterman::mismatch_score);
     for (int32_t j = 1; j <= target_seq_length; j++) {
       int32_t index = target_seq_length + 1 + j;
 
@@ -115,8 +110,10 @@ void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
         max_score = max;
       }
     }
-    for (int j = 1; j <= target_seq_length; j++)
-      H[j] = H[target_seq_length + 1 + j];
+    // for (int j = 1; j <= target_seq_length; j++)
+    //   H[j] = H[target_seq_length + 1 + j];
+    memcpy(H.begin().base() + 1, H.begin().base() + target_seq_length + 2,
+           sizeof(uint32_t) * target_seq_length);
   }
   *score = max_score;
 }

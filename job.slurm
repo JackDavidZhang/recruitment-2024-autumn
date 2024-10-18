@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH -N1 -n10
 #SBATCH -J SmithWaterman_zzb
+#SBATCH --gres=gpu:1
 
 export OMP_NUM_THREADS=10
 
