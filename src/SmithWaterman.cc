@@ -4,6 +4,7 @@
 #include <omp.h>
 
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -129,8 +130,8 @@ void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
         max_score = max;
       }
     }
-    for (int j = 1; j <= target_seq_length; j++)
-      H[j] = H[target_seq_length + 1 + j];
+    memcpy(H.begin().base() + 1, H.begin().base() + target_seq_length + 2,
+           target_seq_length);
   }
   *score = max_score;
 }
