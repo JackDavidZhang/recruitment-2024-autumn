@@ -131,7 +131,7 @@ void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
       }
     }
     memcpy(H.begin().base() + 1, H.begin().base() + target_seq_length + 2,
-           target_seq_length);
+           target_seq_length * sizeof(uint32_t));
   }
   *score = max_score;
 }
