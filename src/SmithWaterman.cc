@@ -91,19 +91,25 @@ void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
   // From the upper element
   for (int32_t i = 1; i <= query_seq_length; i++) {
     for (int32_t j = 1; j + 15 <= target_seq_length; j += 16) {
+      std::cout << "ttt" << std::endl;;
       H_512 = _mm512_loadu_epi32(H.begin().base() + j);
       up_512 = _mm512_add_epi32(H_512, gap_score_512);
       _mm512_storeu_epi32(up.begin().base() + j, up_512);
 
       __mmask16 strmask = _mm_cmpeq_epi8_mask(
-          _mm_loadu_epi8((query_seq->sequence.data() + i - 1)),
+          _mm_set1_epi8(query_seq->sequence.at(i-1)),
           _mm_loadu_epi8((target_seq->sequence.data() + j - 1)));
+      int8_t qsd[16];
+      _mm_storeu_epi8(qsd,_mm_set1_epi8(query_seq->sequence.at(i-1)));
+      int8_t tsd[16];
+      _mm_storeu_epi8(tsd,_mm_loadu_epi8((target_seq->sequence.data() + j - 1)));
       __m512i upleft_score = _mm512_mask_set1_epi32(mis_score_512, strmask,
                                                     SmithWaterman::match_score);
+      int32_t uplefts[16];
+      _mm512_storeu_epi32(uplefts,upleft_score);
       H_512 = _mm512_loadu_epi32(H.begin().base() + j - 1);
       _mm512_storeu_epi32(upleft.begin().base() + j,
                           _mm512_add_epi32(H_512, upleft_score));
-      // up[j] = H[j] + SmithWaterman::gap_score;
     }
     for (int32_t j = target_seq_length - target_seq_length % 16 + 1;
          j <= target_seq_length; j++) {
@@ -114,15 +120,6 @@ void pair_align(FastaSequence* query_seq, FastaSequence* target_seq,
                                SmithWaterman::mismatch_score) +
                   SmithWaterman::mismatch_score + H[j - 1];
     }
-    /*
-for (int32_t j = 1; j <= target_seq_length; j++)
-upleft[j] =
-query_seq->sequence.at(i - 1) == target_seq->sequence.at(j - 1);
-for (int32_t j = 1; j <= target_seq_length; j++)
-upleft[j] = upleft[j] * (SmithWaterman::match_score -
-                   SmithWaterman::mismatch_score) +
-      SmithWaterman::mismatch_score + H[j - 1];
-      */
     for (int32_t j = 1; j <= target_seq_length; j++) {
       int32_t index = target_seq_length + 1 + j;
 
